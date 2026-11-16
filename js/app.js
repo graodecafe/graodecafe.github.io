@@ -27,11 +27,22 @@
   }
 
   /* ---------- cardápio ---------- */
-  var MENU = window.CARDAPIO || [];
+  var MENU = Array.isArray(window.CARDAPIO) ? window.CARDAPIO : [];
   var root = document.getElementById("secoes");
   var chipsBar = document.getElementById("chips");
 
+  /* Se o arquivo do cardápio tiver algum erro de digitação, a página não fica vazia */
+  if (!MENU.length) {
+    var aviso = el("p", "nojs", "Nosso cardápio está sendo atualizado. Fale com a gente pelo WhatsApp: ");
+    var wa = el("a", null, "(75) 99218-0990");
+    wa.href = "https://wa.me/5575992180990";
+    wa.target = "_blank"; wa.rel = "noopener noreferrer";
+    aviso.appendChild(wa);
+    root.appendChild(aviso);
+  }
+
   MENU.forEach(function (cat, i) {
+    if (!cat || !cat.id || !cat.titulo) return; // ignora categoria incompleta
     var sec = el("section", "cat rv");
     sec.id = cat.id;
     sec.setAttribute("aria-labelledby", "t-" + cat.id);
@@ -58,6 +69,7 @@
 
     var ul = el("ul", "list");
     (cat.itens || []).forEach(function (it) {
+      if (!it || !it.nome) return; // ignora item sem nome
       var li = el("li", "it");
       var l = el("div", "it-l");
       l.appendChild(el("span", "it-n", it.nome));
@@ -66,7 +78,7 @@
       var dots = el("span", "it-dots");
       dots.setAttribute("aria-hidden", "true");
       li.appendChild(dots);
-      li.appendChild(price(it.preco, "it-p"));
+      if (it.preco) li.appendChild(price(it.preco, "it-p"));
       ul.appendChild(li);
     });
     sec.appendChild(ul);

@@ -160,3 +160,8 @@ footer .beans{position:absolute;left:50%;top:10px;width:520px;max-width:none;tra
 .js .rv.vis{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.js .rv{opacity:1;transform:none}html{scroll-behavior:auto}}
 .hero h1{line-height:0;font-size:0}
+
+/* página 404 */
+.nf{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px}
+.nf .cta{font-size:44px;margin-top:22px}
+.nf-btn{margin-top:22px;padding:13px 22px}
