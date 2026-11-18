@@ -124,6 +124,11 @@
   var neonW = document.getElementById("neonW"), lastOpen = null;
   function setNeon(open, sub) {
     var st = document.getElementById("status");
+    var hs = document.getElementById("hstat");
+    if (hs) {
+      hs.classList.toggle("on", open);
+      document.getElementById("hstatTx").textContent = (open ? "Aberto agora · " : "Fechado no momento · ") + sub;
+    }
     neonW.textContent = open ? "Aberto" : "Fechado";
     document.getElementById("statusTx").textContent = sub;
     if (open !== lastOpen) {
@@ -133,7 +138,7 @@
   }
   function upd() {
     var t = now(), T = H[t.d], i;
-    document.querySelectorAll(".row").forEach(function (r) { r.classList.toggle("today", r.getAttribute("data-days").split(",").indexOf(String(t.d)) > -1); });
+    document.querySelectorAll("[data-days]").forEach(function (r) { r.classList.toggle("today", r.getAttribute("data-days").split(",").indexOf(String(t.d)) > -1); });
     for (i = 0; i < T.length; i++) if (t.m >= T[i][0] && t.m < T[i][1]) { setNeon(true, "até as " + fmt(T[i][1])); return; }
     for (i = 0; i < T.length; i++) if (t.m < T[i][0]) { setNeon(false, "abre hoje às " + fmt(T[i][0])); return; }
     for (var k = 1; k <= 7; k++) { var d = (t.d + k) % 7; if (H[d].length) { setNeon(false, "abre " + (k === 1 ? "amanhã" : DN[d]) + " às " + fmt(H[d][0][0])); return; } }
