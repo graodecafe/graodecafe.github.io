@@ -43,7 +43,7 @@
 
   MENU.forEach(function (cat, i) {
     if (!cat || !cat.id || !cat.titulo) return; // ignora categoria incompleta
-    var sec = el("section", "cat rv");
+    var sec = el("section", "cat");
     sec.id = cat.id;
     sec.setAttribute("aria-labelledby", "t-" + cat.id);
 
@@ -78,7 +78,18 @@
       var dots = el("span", "it-dots");
       dots.setAttribute("aria-hidden", "true");
       li.appendChild(dots);
-      if (it.preco) li.appendChild(price(it.preco, "it-p"));
+      if (Array.isArray(it.opcoes) && it.opcoes.length) {
+        li.className = "it multi";
+        var ops = el("div", "it-ops");
+        it.opcoes.forEach(function (o) {
+          if (!o || !o.preco) return;
+          var row = el("span", "op");
+          row.appendChild(el("span", "op-n", o.nome || ""));
+          row.appendChild(price(o.preco, "it-p"));
+          ops.appendChild(row);
+        });
+        li.appendChild(ops);
+      } else if (it.preco) li.appendChild(price(it.preco, "it-p"));
       ul.appendChild(li);
     });
     sec.appendChild(ul);
@@ -110,13 +121,22 @@
       return { d: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(o.weekday), m: (+o.hour % 24) * 60 + (+o.minute) };
     } catch (e) { var d = new Date(); return { d: d.getDay(), m: d.getHours() * 60 + d.getMinutes() }; }
   }
+  var neonW = document.getElementById("neonW"), lastOpen = null;
+  function setNeon(open, sub) {
+    var st = document.getElementById("status");
+    neonW.textContent = open ? "Aberto" : "Fechado";
+    document.getElementById("statusTx").textContent = sub;
+    if (open !== lastOpen) {
+      st.className = "neon " + (open ? "on" : "off") + (lastOpen === null && open ? " ignite" : "");
+      lastOpen = open;
+    }
+  }
   function upd() {
-    var t = now(), st = document.getElementById("status"), tx = document.getElementById("statusTx"), T = H[t.d], i;
+    var t = now(), T = H[t.d], i;
     document.querySelectorAll(".row").forEach(function (r) { r.classList.toggle("today", r.getAttribute("data-days").split(",").indexOf(String(t.d)) > -1); });
-    for (i = 0; i < T.length; i++) if (t.m >= T[i][0] && t.m < T[i][1]) { st.className = "status open"; tx.textContent = "Aberto agora · até as " + fmt(T[i][1]); return; }
-    st.className = "status closed";
-    for (i = 0; i < T.length; i++) if (t.m < T[i][0]) { tx.textContent = "Fechado agora · abre hoje às " + fmt(T[i][0]); return; }
-    for (var k = 1; k <= 7; k++) { var d = (t.d + k) % 7; if (H[d].length) { tx.textContent = "Fechado agora · abre " + (k === 1 ? "amanhã" : DN[d]) + " às " + fmt(H[d][0][0]); return; } }
+    for (i = 0; i < T.length; i++) if (t.m >= T[i][0] && t.m < T[i][1]) { setNeon(true, "até as " + fmt(T[i][1])); return; }
+    for (i = 0; i < T.length; i++) if (t.m < T[i][0]) { setNeon(false, "abre hoje às " + fmt(T[i][0])); return; }
+    for (var k = 1; k <= 7; k++) { var d = (t.d + k) % 7; if (H[d].length) { setNeon(false, "abre " + (k === 1 ? "amanhã" : DN[d]) + " às " + fmt(H[d][0][0])); return; } }
   }
   upd(); setInterval(upd, 60000);
 
@@ -149,12 +169,23 @@
     var y = window.scrollY + 120, id = null;
     cats.forEach(function (s) { if (s.offsetTop <= y) id = s.id; });
     setOn(id);
-    var show = window.scrollY > window.innerHeight * 0.7;
+    var show = window.scrollY > window.innerHeight * 0.5;
     fab.classList.toggle("show", show);
-    fab.tabIndex = show ? 0 : -1;
+    fab.querySelector("a").tabIndex = show ? 0 : -1;
   }
   window.addEventListener("scroll", function () { if (!ticking) { ticking = true; requestAnimationFrame(spy); } }, { passive: true });
   spy();
+
+  /* ---------- degradê nas bordas da barra de categorias ---------- */
+  var nav = document.querySelector(".nav");
+  function edges() {
+    var max = chipsBar.scrollWidth - chipsBar.clientWidth;
+    nav.classList.toggle("more-r", chipsBar.scrollLeft < max - 4);
+    nav.classList.toggle("more-l", chipsBar.scrollLeft > 4);
+  }
+  chipsBar.addEventListener("scroll", edges, { passive: true });
+  window.addEventListener("resize", edges);
+  edges();
 
   /* ---------- revelar ao rolar ---------- */
   var rv = document.querySelectorAll(".rv");
